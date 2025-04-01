@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>BLE 제어 인터페이스</title>
+  <style>
+    button { padding: 10px 20px; margin: 5px; font-size: 16px; }
+    #log { margin-top: 10px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h2>BLE 장치 제어</h2>
+  <button onclick="connect()">🔗 BLE 연결</button>
+  <button onclick="send('>V1')">전압 읽기</button>
+  <button onclick="send('>T1')">온도 읽기</button>
+  <button onclick="send('>B1')">버저 ON</button>
+  <button onclick="send('>B0')">버저 OFF</button>
+  <button onclick="send('>R1')">릴레이 ON</button>
+  <button onclick="send('>R0')">릴레이 OFF</button>
+
+  <div id="log"></div>
+
+  <script>
+    let device, server, service, characteristic;
+
+    async function connect() {
+      try {
+        device = await navigator.bluetooth.requestDevice({
+          filters: [{ namePrefix: 'TG02' }],  // 장치 이름 또는 services 필터
+          optionalServices: [0xFFE0] // UART-like GATT 서비스 UUID (예: 0xFFE0 또는 custom)
+        });
+
+        server = await device.gatt.connect();
+        service = await server.getPrimaryService(0xFFE0);
+        characteristic = await service.getCharacteristic(0xFFE1);
+
+        // Notify 설정
+        await characteristic.startNotifications();
+        characteristic.addEventListener('characteristicvaluechanged', handleResponse);
+
+        log("✅ BLE 연결 성공!");
+      } catch (e) {
+        log("❌ 연결 실패: " + e);
+      }
+    }
+
+    function send(cmd) {
+      if (!characteristic) {
+        log("⛔ 먼저 BLE에 연결하세요.");
+        return;
+      }
+
+      const encoder = new TextEncoder();
+      characteristic.writeValue(encoder.encode(cmd + '\n'));
+      log("📤 전송: " + cmd);
+    }
+
+    function handleResponse(event) {
+      const decoder = new TextDecoder('utf-8');
+      const value = decoder.decode(event.target.value);
+      log("📥 수신: " + value.trim());
+    }
+
+    function log(msg) {
+      document.getElementById('log').textContent += msg + '\n';
+    }
+  </script>
+</body>
+</html>
