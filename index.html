@@ -5,7 +5,7 @@
   <title>BLE 제어 인터페이스</title>
   <style>
     button { padding: 10px 20px; margin: 5px; font-size: 16px; }
-    #log { margin-top: 10px; white-space: pre-wrap; }
+    #log { margin-top: 10px; white-space: pre-wrap; background: #f4f4f4; padding: 10px; border-radius: 6px; }
   </style>
 </head>
 <body>
@@ -26,19 +26,18 @@
     async function connect() {
       try {
         device = await navigator.bluetooth.requestDevice({
-          filters: [{ namePrefix: 'TG02' }],  // 장치 이름 또는 services 필터
-          optionalServices: [0xFFE0] // UART-like GATT 서비스 UUID (예: 0xFFE0 또는 custom)
+          acceptAllDevices: true,
+          optionalServices: ['0000ffe0-0000-1000-8000-00805f9b34fb']
         });
 
         server = await device.gatt.connect();
-        service = await server.getPrimaryService(0xFFE0);
-        characteristic = await service.getCharacteristic(0xFFE1);
+        service = await server.getPrimaryService('0000ffe0-0000-1000-8000-00805f9b34fb');
+        characteristic = await service.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb');
 
-        // Notify 설정
         await characteristic.startNotifications();
         characteristic.addEventListener('characteristicvaluechanged', handleResponse);
 
-        log("✅ BLE 연결 성공!");
+        log("✅ BLE 연결 성공");
       } catch (e) {
         log("❌ 연결 실패: " + e);
       }
@@ -49,7 +48,6 @@
         log("⛔ 먼저 BLE에 연결하세요.");
         return;
       }
-
       const encoder = new TextEncoder();
       characteristic.writeValue(encoder.encode(cmd + '\n'));
       log("📤 전송: " + cmd);
@@ -62,7 +60,9 @@
     }
 
     function log(msg) {
-      document.getElementById('log').textContent += msg + '\n';
+      const logEl = document.getElementById('log');
+      logEl.textContent += msg + '\n';
+      logEl.scrollTop = logEl.scrollHeight;
     }
   </script>
 </body>
