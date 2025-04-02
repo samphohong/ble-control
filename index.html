@@ -57,6 +57,9 @@
       const decoder = new TextDecoder('utf-8');
       const value = decoder.decode(event.target.value);
       log("📥 수신: " + value.trim());
+
+      // ❗ 아래처럼 되돌려 보내는 코드는 절대 넣지 마세요:
+      // characteristic.writeValue(encoder.encode(value)); ❌
     }
 
     function log(msg) {
@@ -67,3 +70,6 @@
   </script>
 </body>
 </html>
+
+
+
