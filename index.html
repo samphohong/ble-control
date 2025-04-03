@@ -3,6 +3,9 @@
 <head>
   <meta charset="utf-8">
   <title>BLE 제어 인터페이스</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     button { padding: 10px 20px; margin: 5px; font-size: 16px; }
     #log {
@@ -41,13 +44,11 @@
         server = await device.gatt.connect();
         service = await server.getPrimaryService('0000ffe0-0000-1000-8000-00805f9b34fb');
 
-        // WRITE 가능한 characteristic 찾기 (예: FFE2)
         const characteristics = await service.getCharacteristics();
         for (const c of characteristics) {
           const props = c.properties;
           if (props.write || props.writeWithoutResponse) {
             characteristic = c;
-            log("✅ 쓰기 가능한 characteristic 연결됨 (UUID: " + c.uuid + ")");
             break;
           }
         }
@@ -68,7 +69,7 @@
     }
 
     async function send(cmd) {
-      if (!characteristic) {
+      if (!characteristic || !device || !device.gatt.connected) {
         log("⛔ 먼저 BLE에 연결하세요.");
         return;
       }
@@ -87,6 +88,14 @@
       logEl.textContent += msg + '\n';
       logEl.scrollTop = logEl.scrollHeight;
     }
+
+    // ✅ PWA용 Service Worker 등록
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log("✅ Service Worker 등록됨"))
+        .catch(err => console.error("❌ Service Worker 등록 실패:", err));
+    }
   </script>
 </body>
 </html>
+
