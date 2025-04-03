@@ -52,10 +52,14 @@
         characteristic.addEventListener('characteristicvaluechanged', handleResponse);
 
         log("✅ BLE 연결 성공: " + device.name);
-      } catch (e) {
-        log("❌ 연결 실패: " + e);
+      } 
+      catch (e) {
+      if (e.name === 'NotFoundError') {
+      log("ℹ️ 연결이 취소되었습니다. 장치를 선택해야 연결됩니다.");
+      } else {
+      log("❌ 연결 실패: " + e);
       }
-    }
+    }   
 
     async function send(cmd) {
       if (!characteristic) {
