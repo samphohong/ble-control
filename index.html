@@ -5,7 +5,7 @@
   <title>BLE 제어 인터페이스</title>
   <style>
     button { padding: 10px 20px; margin: 5px; font-size: 16px; }
-    #log { margin-top: 10px; white-space: pre-wrap; background: #f4f4f4; padding: 10px; border-radius: 6px; }
+    #log { margin-top: 10px; white-space: pre-wrap; background: #f4f4f4; padding: 10px; border-radius: 6px; max-height: 300px; overflow-y: auto; }
   </style>
 </head>
 <body>
@@ -37,29 +37,31 @@
         await characteristic.startNotifications();
         characteristic.addEventListener('characteristicvaluechanged', handleResponse);
 
-        log("✅ BLE 연결 성공");
+        log("✅ BLE 연결 성공: " + device.name);
       } catch (e) {
         log("❌ 연결 실패: " + e);
       }
     }
 
-    function send(cmd) {
+    async function send(cmd) {
       if (!characteristic) {
         log("⛔ 먼저 BLE에 연결하세요.");
         return;
       }
+
       const encoder = new TextEncoder();
-      characteristic.writeValue(encoder.encode(cmd + '\n'));
-      log("📤 전송: " + cmd);
+      try {
+        await characteristic.writeValue(encoder.encode(cmd + '\n'));
+        log("📤 전송 성공: " + cmd);
+      } catch (err) {
+        log("❌ 전송 실패: " + err);
+      }
     }
 
     function handleResponse(event) {
       const decoder = new TextDecoder('utf-8');
       const value = decoder.decode(event.target.value);
       log("📥 수신: " + value.trim());
-
-      // ❗ 아래처럼 되돌려 보내는 코드는 절대 넣지 마세요:
-      // characteristic.writeValue(encoder.encode(value)); ❌
     }
 
     function log(msg) {
@@ -70,6 +72,7 @@
   </script>
 </body>
 </html>
+
 
 
 
