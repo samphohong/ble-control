@@ -7,12 +7,12 @@
   "description": "RP2040 장치 제어용 Web BLE 앱",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "icon1-192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "icon-512.png",
+      "src": "icon2-512.png",
       "type": "image/png",
       "sizes": "512x512"
     }
